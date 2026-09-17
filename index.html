@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pixel AI World</title>
+<meta name="description" content="像素風 AI 模型世界互動原型" />
+<style>
+:root{
+  --bg:#0d1520; --panel:#172435; --panel2:#1e3047; --ink:#f4ecd8; --muted:#9eb0c4;
+  --line:#314760; --accent:#ffd166; --good:#7bd88f; --bad:#ff7b72; --sky:#88c9f9;
+  --tile:16px;
+}
+*{box-sizing:border-box}
+html{background:#081018}
+body{
+  margin:0;color:var(--ink);background:
+    linear-gradient(#0a131d 50%,#081018 50%);background-size:100% 4px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Noto Sans TC",monospace;
+  image-rendering:pixelated;
+}
+button,input{font:inherit}
+button{cursor:pointer}
+.pixel{
+  box-shadow:0 0 0 2px #081018,0 0 0 4px #334b66,6px 6px 0 4px #060b11;
+}
+header{
+  position:sticky;top:0;z-index:30;background:rgba(8,16,24,.94);backdrop-filter:blur(8px);
+  border-bottom:2px solid #263c54;
+}
+.topbar{max-width:1320px;margin:auto;padding:14px 18px;display:flex;gap:14px;align-items:center}
+.brand{display:flex;gap:11px;align-items:center;min-width:max-content}
+.brandmark{
+  width:38px;height:38px;background:
+    linear-gradient(90deg,transparent 25%,#ffd166 25% 75%,transparent 75%),
+    linear-gradient(transparent 25%,#ffd166 25% 75%,transparent 75%);
+  border:4px solid #f6b73c;box-shadow:inset 0 0 0 4px #a86a17,4px 4px #05090e;
+}
+.brand b{font-size:17px;letter-spacing:.06em}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.search{flex:1;position:relative}
+.search input{
+  width:100%;background:#111e2d;border:2px solid #35516f;color:#fff;padding:11px 12px 11px 38px;outline:none;
+  box-shadow:inset 3px 3px 0 #07101a;
+}
+.search:before{content:"⌕";position:absolute;left:13px;top:8px;color:#9bd0f5;font-size:22px}
+nav{display:flex;gap:6px}
+.tab{
+  color:#aebdd0;background:#132033;border:2px solid #2c4561;padding:8px 11px;box-shadow:2px 2px #050a0f;
+}
+.tab.active,.tab:hover{color:#09111a;background:var(--accent);border-color:#ffe7a1}
+main{max-width:1320px;margin:auto;padding:20px 18px 70px}
+.hero{
+  display:grid;grid-template-columns:1.35fr .65fr;gap:18px;margin-bottom:20px
+}
+.intro{padding:20px;background:#132033;border:2px solid #2c4561}
+.eyebrow{color:#6dd7ff;font-size:11px;letter-spacing:.18em}
+h1{font-size:32px;line-height:1.12;margin:8px 0 8px;text-shadow:3px 3px #000}
+.intro p{color:#aab9ca;margin:0;max-width:720px;line-height:1.65;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:#172638;border:2px solid #35516f;padding:14px}
+.stat strong{display:block;font-size:24px;color:#fff}.stat span{font-size:10px;color:#8fa6bf}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
+.filter{
+  border:2px solid #33506d;background:#122034;color:#aec3d9;padding:7px 10px;
+}
+.filter.active{background:#7bd88f;color:#0b1a13;border-color:#c7ffd3}
+.section-title{display:flex;align-items:end;justify-content:space-between;margin:16px 0 10px}
+.section-title h2{margin:0;font-size:15px;letter-spacing:.08em}
+.section-title small{color:#7f96ad}
+.world-wrap{position:relative;overflow:auto;border:3px solid #3c5876;background:#162436;box-shadow:8px 8px #05090d}
+.world{
+  min-width:1040px;height:620px;position:relative;overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    #294f42;
+  background-size:16px 16px;
+}
+.water{position:absolute;inset:auto 0 0 0;height:96px;background:
+  repeating-linear-gradient(0deg,#315d7d 0 8px,#397199 8px 16px);
+  border-top:8px solid #d9c78d;
+}
+.road.h{position:absolute;height:48px;background:#8a795d;border-top:8px solid #6d604c;border-bottom:8px solid #a99777}
+.road.v{position:absolute;width:48px;background:#8a795d;border-left:8px solid #6d604c;border-right:8px solid #a99777}
+.road.one{left:0;right:0;top:288px}.road.two{top:0;bottom:96px;left:500px}
+.tree{position:absolute;width:24px;height:36px;background:#173d29;border:4px solid #0d2719;box-shadow:0 -12px 0 #2d7249,8px -6px 0 #3c8d5d,-8px -6px 0 #367e53}
+.zone{
+  position:absolute;width:210px;height:150px;border:2px dashed rgba(255,255,255,.18);
+  padding:10px;background:rgba(5,12,18,.13)
+}
+.zone-label{font-size:11px;color:#eff7ff;text-shadow:2px 2px #000}
+.building{
+  position:absolute;width:72px;height:68px;left:18px;top:45px;background:#253b55;border:5px solid #0b1723;
+  box-shadow:inset 0 -12px #17273a,5px 5px #102117;
+}
+.building:before{content:"";position:absolute;left:-8px;right:-8px;top:-20px;height:22px;background:var(--c,#ffd166);border:5px solid #0b1723;transform:skew(-16deg)}
+.building:after{content:"";position:absolute;width:18px;height:30px;left:22px;bottom:0;background:#06111a;border:3px solid #365a78}
+.flag{position:absolute;left:95px;top:52px;width:66px;background:#0b1622;border:2px solid #6d8eac;padding:5px;text-align:center;font-size:9px}
+.model{
+  position:absolute;width:34px;height:48px;border:none;background:transparent;color:#fff;padding:0;filter:drop-shadow(3px 4px #07100c);
+}
+.sprite{position:relative;width:24px;height:34px;margin:auto}
+.sprite .head{position:absolute;left:5px;top:0;width:14px;height:13px;background:var(--skin,#e9c4a5);border:3px solid #101820}
+.sprite .body{position:absolute;left:2px;top:13px;width:20px;height:15px;background:var(--suit,#57a0d3);border:3px solid #101820}
+.sprite .legs{position:absolute;left:4px;top:27px;width:16px;height:7px;border-left:5px solid #101820;border-right:5px solid #101820}
+.model:hover{transform:translateY(-3px)}.model:hover .tag{display:block}
+.tag{
+  display:none;position:absolute;left:50%;bottom:48px;transform:translateX(-50%);
+  width:max-content;max-width:160px;background:#08111b;border:2px solid #7ca5c9;padding:4px 6px;font-size:9px;white-space:nowrap
+}
+.badge{display:inline-block;padding:2px 5px;border:1px solid #58728d;color:#cfe2f5;font-size:9px;margin-right:4px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{
+  background:#142338;border:2px solid #35506d;padding:13px;min-height:148px;position:relative;
+  box-shadow:4px 4px #07101a;
+}
+.card:hover{transform:translate(-2px,-2px);box-shadow:7px 7px #07101a}
+.card .rank{position:absolute;right:10px;top:10px;color:#ffe190;font-size:11px}
+.card h3{font-size:13px;margin:8px 0 4px}.card p{font-size:10px;color:#88a0b8;margin:0 0 10px}
+.bar{height:7px;background:#08131e;border:1px solid #263e57;margin:5px 0 8px}.bar i{display:block;height:100%;background:#7bd88f}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:6px;color:#9eb0c4;font-size:9px}.kv b{display:block;color:#f5f0df;font-size:11px}
+.panel{display:none}.panel.active{display:block}
+.timeline{border-left:4px solid #385570;margin-left:13px;padding-left:20px}
+.event{position:relative;background:#142338;border:2px solid #304b66;padding:12px;margin:0 0 12px}
+.event:before{content:"";position:absolute;left:-31px;top:15px;width:12px;height:12px;background:#ffd166;border:3px solid #07111b}
+.event time{color:#7fdcff;font-size:10px}.event strong{display:block;margin:5px 0;font-size:12px}.event span{color:#90a4b8;font-size:10px}
+.modal{position:fixed;inset:0;z-index:99;background:rgba(2,7,12,.78);display:none;align-items:center;justify-content:center;padding:18px}
+.modal.open{display:flex}
+.dialog{width:min(620px,100%);background:#15263b;border:3px solid #6081a3;box-shadow:10px 10px #02060a;padding:20px}
+.dialog-head{display:flex;justify-content:space-between;gap:10px}.close{background:#37202a;border:2px solid #784252;color:#ffdbe3;padding:5px 9px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}.metric{background:#0e1b2a;border:2px solid #2d4761;padding:9px}.metric small{color:#8097ad;font-size:8px}.metric b{display:block;margin-top:4px}
+.legend{position:absolute;right:12px;bottom:108px;background:#0c1825dd;border:2px solid #36536f;padding:8px;font-size:9px;color:#a9bdd0}
+footer{color:#6f8498;font-size:10px;text-align:center;padding:24px 0 8px}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}nav{display:none}}
+@media(max-width:560px){.topbar{flex-wrap:wrap}.brand{width:100%}.search{order:3;flex-basis:100%}h1{font-size:25px}.cards{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brandmark"></div>
+      <div><b>PIXEL AI WORLD</b><small>AI 模型世界 · 原型版</small></div>
+    </div>
+    <div class="search"><input id="search" placeholder="搜尋模型、廠商、能力…" autocomplete="off"></div>
+    <nav>
+      <button class="tab active" data-tab="worldPanel">世界</button>
+      <button class="tab" data-tab="rankPanel">排行</button>
+      <button class="tab" data-tab="timelinePanel">時間線</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="intro pixel">
+      <div class="eyebrow">EXPLORE · COMPARE · DISCOVER</div>
+      <h1>把 AI 模型變成一座<br>可以逛的像素世界。</h1>
+      <p>每家公司是一座城，每個模型是一名角色。點角色看能力、價格、上下文與定位；用搜尋和篩選快速找到你想認識的模型。</p>
+    </div>
+    <div class="stats">
+      <div class="stat pixel"><strong id="modelCount">10</strong><span>展示模型</span></div>
+      <div class="stat pixel"><strong id="vendorCount">8</strong><span>AI 廠商</span></div>
+      <div class="stat pixel"><strong>4</strong><span>核心指標</span></div>
+      <div class="stat pixel"><strong>DEMO</strong><span>目前為展示資料</span></div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button class="filter active" data-filter="all">全部</button>
+    <button class="filter" data-filter="coding">程式</button>
+    <button class="filter" data-filter="vision">視覺</button>
+    <button class="filter" data-filter="reasoning">推理</button>
+    <button class="filter" data-filter="opensource">開源</button>
+  </div>
+
+  <section id="worldPanel" class="panel active">
+    <div class="section-title"><h2>▣ 世界地圖</h2><small>點擊角色查看模型詳情</small></div>
+    <div class="world-wrap">
+      <div class="world" id="world">
+        <div class="road h one"></div><div class="road v two"></div><div class="water"></div>
+        <div class="tree" style="left:25px;top:218px"></div><div class="tree" style="left:450px;top:55px"></div>
+        <div class="tree" style="left:810px;top:225px"></div><div class="tree" style="left:950px;top:70px"></div>
+        <div class="legend">■ 城鎮＝AI 廠商<br>▥ 角色＝模型<br>↗ 點擊可查看詳細資料</div>
+      </div>
+    </div>
+
+    <div class="section-title"><h2>▣ 熱門角色</h2><small>展示資料，可改接 JSON / API</small></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="rankPanel" class="panel">
+    <div class="section-title"><h2>▣ 模型排行榜</h2><small>依展示用綜合分數排序</small></div>
+    <div class="cards" id="rankCards"></div>
+  </section>
+
+  <section id="timelinePanel" class="panel">
+    <div class="section-title"><h2>▣ 發布時間線</h2><small>目前為示範事件</small></div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <footer>PIXEL AI WORLD · prototype for ChatGPT Sites · demo data only</footer>
+</main>
+
+<div class="modal" id="modal">
+  <div class="dialog">
+    <div class="dialog-head">
+      <div><span class="badge" id="mVendor"></span><h2 id="mName" style="margin:8px 0 0"></h2></div>
+      <button class="close" id="close">ESC</button>
+    </div>
+    <p id="mDesc" style="color:#9db0c4;line-height:1.6;font-size:12px"></p>
+    <div class="metrics">
+      <div class="metric"><small>綜合</small><b id="mScore"></b></div>
+      <div class="metric"><small>程式</small><b id="mCoding"></b></div>
+      <div class="metric"><small>上下文</small><b id="mContext"></b></div>
+      <div class="metric"><small>價格</small><b id="mPrice"></b></div>
+    </div>
+    <div id="mTags"></div>
+  </div>
+</div>
+
+<script>
+const vendors = [
+ {name:"OpenAI",x:70,y:65,c:"#64d4a7"}, {name:"Anthropic",x:285,y:78,c:"#d7a77a"},
+ {name:"Google",x:590,y:62,c:"#72a8ff"}, {name:"Meta",x:815,y:72,c:"#8d9cff"},
+ {name:"DeepSeek",x:70,y:360,c:"#6bb7ff"}, {name:"Moonshot",x:285,y:385,c:"#b69dff"},
+ {name:"Alibaba",x:590,y:370,c:"#ff9a5a"}, {name:"Mistral",x:815,y:382,c:"#ffcf67"}
+];
+const models = [
+ {id:"sol",name:"Sol",vendor:"OpenAI",score:96,coding:95,context:"1M",price:"$$$",tags:["coding","reasoning","vision"],desc:"高能力通用角色，擅長複雜知識工作與程式任務。",pos:[150,150],date:"2026-08-20"},
+ {id:"luna",name:"Luna",vendor:"OpenAI",score:86,coding:84,context:"256K",price:"$",tags:["vision"],desc:"偏快速與日常互動的輕量角色。",pos:[198,205],date:"2026-08-20"},
+ {id:"opus",name:"Opus",vendor:"Anthropic",score:94,coding:96,context:"1M",price:"$$$",tags:["coding","reasoning"],desc:"偏重程式與長任務處理的高能力角色。",pos:[352,165],date:"2026-07-12"},
+ {id:"gemini",name:"Gemini",vendor:"Google",score:92,coding:90,context:"1M",price:"$$",tags:["vision","reasoning"],desc:"多模態與長上下文取向的通用角色。",pos:[664,155],date:"2026-06-28"},
+ {id:"llama",name:"Llama",vendor:"Meta",score:83,coding:80,context:"512K",price:"開源",tags:["opensource"],desc:"可自行部署與客製化的開源陣營角色。",pos:[895,165],date:"2026-05-18"},
+ {id:"deepseek",name:"DeepSeek",vendor:"DeepSeek",score:90,coding:93,context:"256K",price:"$",tags:["coding","reasoning","opensource"],desc:"重視推理與程式能力、成本效率的角色。",pos:[155,445],date:"2026-08-13"},
+ {id:"kimi",name:"Kimi",vendor:"Moonshot",score:88,coding:86,context:"1M",price:"$$",tags:["reasoning","opensource"],desc:"長上下文與推理取向角色。",pos:[365,455],date:"2026-07-20"},
+ {id:"qwen",name:"Qwen",vendor:"Alibaba",score:87,coding:89,context:"256K",price:"$",tags:["coding","vision","opensource"],desc:"開源、多語與程式能力均衡的角色。",pos:[665,448],date:"2026-08-02"},
+ {id:"mistral",name:"Mistral",vendor:"Mistral",score:80,coding:82,context:"256K",price:"$",tags:["opensource"],desc:"偏效率與部署彈性的歐洲開源角色。",pos:[895,455],date:"2026-04-16"},
+ {id:"flash",name:"Flash",vendor:"Google",score:82,coding:78,context:"1M",price:"$",tags:["vision"],desc:"追求速度與成本效率的多模態角色。",pos:[720,205],date:"2026-09-05"}
+];
+let currentFilter="all", query="";
+
+const world=document.getElementById("world");
+vendors.forEach(v=>{
+ const z=document.createElement("div");z.className="zone";z.style.cssText=`left:${v.x}px;top:${v.y}px`;
+ z.innerHTML=`<div class="zone-label">${v.name} 城</div><div class="building" style="--c:${v.c}"></div><div class="flag">${v.name}</div>`;
+ world.appendChild(z);
+});
+models.forEach((m,i)=>{
+ const b=document.createElement("button");b.className="model";b.dataset.id=m.id;b.dataset.tags=m.tags.join(" ");
+ b.style.left=m.pos[0]+"px";b.style.top=m.pos[1]+"px";
+ const hue = ["#57a0d3","#d1785a","#8e7bd8","#62b18c","#d1a24a"][i%5];
+ b.innerHTML=`<div class="sprite" style="--suit:${hue}"><i class="head"></i><i class="body"></i><i class="legs"></i></div><span class="tag">${m.vendor} · ${m.name}</span>`;
+ b.onclick=()=>openModel(m);world.appendChild(b);
+});
+
+function matches(m){
+ const q=query.trim().toLowerCase();
+ const fq=currentFilter==="all"||m.tags.includes(currentFilter);
+ const sq=!q||[m.name,m.vendor,m.desc,...m.tags].join(" ").toLowerCase().includes(q);
+ return fq&&sq;
+}
+function drawCards(target, list){
+ target.innerHTML="";
+ list.filter(matches).forEach((m,idx)=>{
+   const d=document.createElement("button");d.className="card";d.style.textAlign="left";d.style.color="inherit";d.style.width="100%";
+   d.innerHTML=`<span class="rank">#${idx+1}</span><span class="badge">${m.vendor}</span><h3>${m.name}</h3><p>${m.desc}</p>
+   <div class="bar"><i style="width:${m.score}%"></i></div>
+   <div class="kv"><span>綜合<b>${m.score}</b></span><span>程式<b>${m.coding}</b></span><span>上下文<b>${m.context}</b></span><span>價格<b>${m.price}</b></span></div>`;
+   d.onclick=()=>openModel(m);target.appendChild(d);
+ });
+}
+function render(){
+ drawCards(document.getElementById("cards"),models);
+ drawCards(document.getElementById("rankCards"),[...models].sort((a,b)=>b.score-a.score));
+ document.querySelectorAll(".model").forEach(el=>{
+   const m=models.find(x=>x.id===el.dataset.id);el.style.display=matches(m)?"block":"none";
+ });
+}
+function openModel(m){
+ document.getElementById("mVendor").textContent=m.vendor;
+ document.getElementById("mName").textContent=m.name;
+ document.getElementById("mDesc").textContent=m.desc;
+ document.getElementById("mScore").textContent=m.score+"/100";
+ document.getElementById("mCoding").textContent=m.coding+"/100";
+ document.getElementById("mContext").textContent=m.context;
+ document.getElementById("mPrice").textContent=m.price;
+ document.getElementById("mTags").innerHTML=m.tags.map(t=>`<span class="badge">${t}</span>`).join("");
+ document.getElementById("modal").classList.add("open");
+}
+document.getElementById("close").onclick=()=>document.getElementById("modal").classList.remove("open");
+document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")e.currentTarget.classList.remove("open")};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.getElementById("modal").classList.remove("open")});
+document.getElementById("search").addEventListener("input",e=>{query=e.target.value;render()});
+document.querySelectorAll(".filter").forEach(btn=>btn.onclick=()=>{
+ document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));btn.classList.add("active");currentFilter=btn.dataset.filter;render();
+});
+document.querySelectorAll(".tab").forEach(btn=>btn.onclick=()=>{
+ document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
+ document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));document.getElementById(btn.dataset.tab).classList.add("active");
+});
+const timeline=document.getElementById("timeline");
+[...models].sort((a,b)=>b.date.localeCompare(a.date)).forEach(m=>{
+ const e=document.createElement("div");e.className="event";e.innerHTML=`<time>${m.date}</time><strong>${m.vendor} · ${m.name}</strong><span>${m.desc}</span>`;timeline.appendChild(e);
+});
+render();
+</script>
+</body>
+</html>
